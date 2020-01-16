@@ -1,9 +1,13 @@
 apply plugin: 'eclipse'
 apply plugin: 'java'
+apply plugin: 'maven-publish'
+apply plugin: 'signing'
 
+group = "com.github.adrninistrator"
 version = "0.0.1"
 def projectName = 'GenSetterCalls'
 description = "${projectName}"
+
 sourceCompatibility = JavaVersion.VERSION_1_6
 targetCompatibility = JavaVersion.VERSION_1_6
 
@@ -38,12 +42,80 @@ clean {
     delete 'build'
 }
 
-jar {
-    destinationDir file('build/lib')
-    archiveName "${projectName}.jar"
-}
-
 task createProject {
     sourceSets*.java.srcDirs*.each { it.mkdirs() }
     sourceSets*.resources.srcDirs*.each { it.mkdirs() }
+}
+
+task sourcesJar(type: Jar) {
+    doFirst {
+        archiveClassifier.set('sources')
+        from sourceSets.main.allJava
+    }
+}
+
+task javadocJar(type: Jar) {
+    doFirst {
+        archiveClassifier.set('javadoc')
+        from javadoc.destinationDir
+    }
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            groupId project.group
+            artifactId project.name
+            version "${version}"
+            from components.java
+            artifact sourcesJar
+            artifact javadocJar
+
+            pom {
+                name = "GenSetterCalls"
+                description = "Quickly and automatically generate Java dto set method calls, including import and new statements."
+                url = "https://github.com/Adrninistrator/GenSetterCalls"
+                licenses {
+                    license {
+                        name = "The Apache License, Version 2.0"
+                        url = "http://www.apache.org/licenses/LICENSE-2.0.txt"
+                    }
+                }
+                developers {
+                    developer {
+                        id = "Adrninistrator"
+                        name = "zhengyiee"
+                        email = "zhengyiee@qq.com"
+                    }
+                }
+                scm {
+                    connection = "scm:git:https://github.com/Adrninistrator/GenSetterCalls.git"
+                    developerConnection = "scm:git:https://github.com/Adrninistrator/GenSetterCalls.git"
+                    url = "https://github.com/Adrninistrator/GenSetterCalls"
+                }
+            }
+        }
+    }
+    repositories {
+        maven {
+            name 'sonatypeRepository'
+            url 'https://oss.sonatype.org/service/local/staging/deploy/maven2/'
+            credentials {
+                username = "${NEXUS_USERNAME}"
+                password = "${NEXUS_PASSWORD}"
+            }
+        }
+        maven {
+            name = 'sonatypeSnapshotRepository'
+            url = 'https://oss.sonatype.org/content/repositories/snapshots/'
+            credentials {
+                username = "${NEXUS_USERNAME}"
+                password = "${NEXUS_PASSWORD}"
+            }
+        }
+    }
+}
+
+signing {
+    sign publishing.publications.mavenJava
 }
