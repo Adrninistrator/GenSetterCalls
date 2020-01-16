@@ -1,0 +1,49 @@
+apply plugin: 'eclipse'
+apply plugin: 'java'
+
+version = "0.0.1"
+def projectName = 'GenSetterCalls'
+description = "${projectName}"
+sourceCompatibility = JavaVersion.VERSION_1_6
+targetCompatibility = JavaVersion.VERSION_1_6
+
+def defaultEncoding = 'UTF-8'
+
+[compileJava, compileTestJava]*.options*.encoding = defaultEncoding
+
+sourceSets {
+    main {
+        java {
+            srcDir 'src/main/java'
+        }
+
+        resources {
+            srcDir 'src/main/resources'
+        }
+    }
+
+    test {
+        java {
+            srcDir 'src/test/java'
+        }
+
+        resources {
+            srcDir 'src/test/resources'
+        }
+    }
+}
+
+clean {
+    delete 'dist'
+    delete 'build'
+}
+
+jar {
+    destinationDir file('build/lib')
+    archiveName "${projectName}.jar"
+}
+
+task createProject {
+    sourceSets*.java.srcDirs*.each { it.mkdirs() }
+    sourceSets*.resources.srcDirs*.each { it.mkdirs() }
+}
